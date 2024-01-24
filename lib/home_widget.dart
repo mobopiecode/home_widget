@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget_callback_dispatcher.dart';
+import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_foundation/path_provider_foundation.dart';
 
@@ -46,34 +46,6 @@ class HomeWidget {
       'name': name,
       'android': androidName,
       'ios': iOSName,
-      'qualifiedAndroidName': qualifiedAndroidName,
-    });
-  }
-
-  /// Determines whether pinning HomeScreen Widget is supported.
-  static Future<bool?> isRequestPinWidgetSupported() {
-    return _channel.invokeMethod('isRequestPinWidgetSupported');
-  }
-
-  /// Requests to Pin (Add) the HomeScreenWidget to the User's Home Screen
-  ///
-  /// This is supported only on some Android Launchers and only with Android API 26+
-  ///
-  /// Android Widgets will look for [qualifiedAndroidName] then [androidName] and then for [name]
-  /// There is no iOS alternative.
-  ///
-  /// [qualifiedAndroidName] will use the name as is to find the WidgetProvider.
-  /// [androidName] must match the classname of the WidgetProvider, prefixed by the package name.
-  static Future<void> requestPinWidget({
-    String? name,
-    String? androidName,
-    // String? iOSName,
-    String? qualifiedAndroidName,
-  }) {
-    return _channel.invokeMethod('requestPinWidget', {
-      'name': name,
-      'android': androidName,
-      // 'ios': iOSName,
       'qualifiedAndroidName': qualifiedAndroidName,
     });
   }
@@ -125,23 +97,12 @@ class HomeWidget {
   }
 
   /// Register a callback that gets called when clicked on a specific View in a HomeWidget
-  /// This enables having Interactive Widgets that can call Dart Code
+  /// supported only on Android
   /// More Info on setting this up in the README
-  @Deprecated('Use `registerInteractivityCallback` instead')
-  static Future<bool?> registerBackgroundCallback(
-    FutureOr<void> Function(Uri?) callback,
-  ) =>
-      registerInteractivityCallback(callback);
-
-  /// Register a callback that gets called when clicked on a specific View in a HomeWidget
-  /// This enables having Interactive Widgets that can call Dart Code
-  /// More Info on setting this up in the README
-  static Future<bool?> registerInteractivityCallback(
-    FutureOr<void> Function(Uri?) callback,
-  ) {
+  static Future<bool?> registerBackgroundCallback(Function(Uri?) callback) {
     final args = <dynamic>[
       ui.PluginUtilities.getCallbackHandle(callbackDispatcher)?.toRawHandle(),
-      ui.PluginUtilities.getCallbackHandle(callback)?.toRawHandle(),
+      ui.PluginUtilities.getCallbackHandle(callback)?.toRawHandle()
     ];
     return _channel.invokeMethod('registerBackgroundCallback', args);
   }
@@ -227,22 +188,21 @@ class HomeWidget {
 
       try {
         late final String? directory;
-
-        // coverage:ignore-start
-        if (Platform.isIOS) {
+        try {
+          // coverage:ignore-start
+          if (Platform.environment.containsKey('FLUTTER_TEST')) {
+            throw UnsupportedError(
+              'Tests should always use default Path provider for easier mocking',
+            );
+          }
           final PathProviderFoundation provider = PathProviderFoundation();
-          assert(
-            HomeWidget.groupId != null,
-            'No groupId defined. Did you forget to call `HomeWidget.setAppGroupId`',
-          );
           directory = await provider.getContainerPath(
             appGroupIdentifier: HomeWidget.groupId!,
           );
-        } else {
           // coverage:ignore-end
+        } on UnsupportedError catch (_) {
           directory = (await getApplicationSupportDirectory()).path;
         }
-
         final String path = '$directory/home_widget/$key.png';
         final File file = File(path);
         if (!await file.exists()) {

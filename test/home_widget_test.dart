@@ -47,10 +47,6 @@ void main() {
           return Future.value(launchUri);
         case 'registerBackgroundCallback':
           return true;
-        case 'requestPinWidget':
-          return null;
-        case 'isRequestPinWidgetSupported':
-          return true;
       }
     });
   });
@@ -106,31 +102,6 @@ void main() {
     expect(arguments['qualifiedAndroidName'], 'com.example.androidName');
   });
 
-  test('isRequestPinWidgetSupported', () async {
-    expect(
-      await HomeWidget.isRequestPinWidgetSupported(),
-      true,
-    );
-
-    final arguments = await passedArguments.future;
-
-    expect(arguments, isNull);
-  });
-
-  test('requestPinWidget', () async {
-    await HomeWidget.requestPinWidget(
-      name: 'name',
-      androidName: 'androidName',
-      qualifiedAndroidName: 'com.example.androidName',
-    );
-
-    final arguments = await passedArguments.future;
-
-    expect(arguments['name'], 'name');
-    expect(arguments['android'], 'androidName');
-    expect(arguments['qualifiedAndroidName'], 'com.example.androidName');
-  });
-
   group('initiallyLaunchedFromHomeWidget', () {
     test('Valid Uri String gets parsed', () async {
       launchUri = 'homeWidget://homeWidgetTest';
@@ -171,22 +142,7 @@ void main() {
     final callbackHandle =
         PluginUtilities.getCallbackHandle(testCallback)?.toRawHandle();
 
-    // ignore: deprecated_member_use_from_same_package
     expect(await HomeWidget.registerBackgroundCallback(testCallback), true);
-
-    final argument = await passedArguments.future;
-
-    expect(argument[0], dispatcherHandle);
-    expect(argument[1], callbackHandle);
-  });
-
-  test('Register Interactivity Callback passes Handles', () async {
-    final dispatcherHandle =
-        PluginUtilities.getCallbackHandle(callbackDispatcher)?.toRawHandle();
-    final callbackHandle =
-        PluginUtilities.getCallbackHandle(testCallback)?.toRawHandle();
-
-    expect(await HomeWidget.registerInteractivityCallback(testCallback), true);
 
     final argument = await passedArguments.future;
 
@@ -225,7 +181,7 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
     final directory = Directory('app/directory');
 
-    const size = Size(201, 201);
+    const size = Size(200, 200);
     final targetWidget = SizedBox.fromSize(
       size: size,
       child: const Column(
@@ -371,6 +327,6 @@ void emitEvent(ByteData? event) {
   );
 }
 
-Future<void> testCallback(Uri? uri) async {
+void testCallback(Uri? uri) {
   debugPrint('Called TestCallback');
 }

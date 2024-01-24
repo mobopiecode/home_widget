@@ -13,7 +13,7 @@ void main() {
     'nullValueKey': null,
   };
 
-  const defaultValue = MapEntry('defaultKey', 'defaultValue');
+  final defaultValue = MapEntry('defaultKey', 'defaultValue');
 
   setUpAll(() {
     // Clear all Data
@@ -44,10 +44,8 @@ void main() {
     });
 
     testWidgets('Returns default Value', (tester) async {
-      final returnValue = await HomeWidget.getWidgetData(
-        defaultValue.key,
-        defaultValue: defaultValue.value,
-      );
+      final returnValue = await HomeWidget.getWidgetData(defaultValue.key,
+          defaultValue: defaultValue.value);
 
       expect(returnValue, defaultValue.value);
     });
@@ -56,15 +54,13 @@ void main() {
   testWidgets('Update Widget completes', (tester) async {
     final returnValue = await HomeWidget.updateWidget(
       name: 'HomeWidgetExampleProvider',
-    ).timeout(const Duration(seconds: 5));
+    ).timeout(Duration(seconds: 5));
 
     expect(returnValue, true);
   });
 
   testWidgets('Register Background Callback', (tester) async {
-    final returnValue =
-        await HomeWidget.registerInteractivityCallback(backgroundCallback);
-    expect(returnValue, true);
+    await HomeWidget.registerBackgroundCallback(backgroundCallback);
   });
 
   testWidgets(
@@ -75,4 +71,4 @@ void main() {
   });
 }
 
-Future<void> backgroundCallback(Uri? uri) async {}
+void backgroundCallback(Uri? uri) {}

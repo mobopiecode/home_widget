@@ -34,7 +34,9 @@ void callbackDispatcher() {
 
 /// Called when Doing Background Work initiated from Widget
 @pragma("vm:entry-point")
-Future<void> interactiveCallback(Uri? data) async {
+void backgroundCallback(Uri? data) async {
+  print(data);
+
   if (data?.host == 'titleclicked') {
     final greetings = [
       'Hello',
@@ -44,29 +46,25 @@ Future<void> interactiveCallback(Uri? data) async {
       'Ciao',
       '哈洛',
       '안녕하세요',
-      'xin chào',
+      'xin chào'
     ];
     final selectedGreeting = greetings[Random().nextInt(greetings.length)];
-    await HomeWidget.setAppGroupId('YOUR_GROUP_ID');
+
     await HomeWidget.saveWidgetData<String>('title', selectedGreeting);
     await HomeWidget.updateWidget(
-      name: 'HomeWidgetExampleProvider',
-      iOSName: 'HomeWidgetExample',
-    );
+        name: 'HomeWidgetExampleProvider', iOSName: 'HomeWidgetExample');
   }
 }
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
-  runApp(const MaterialApp(home: MyApp()));
+  runApp(MaterialApp(home: MyApp()));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
-  State<MyApp> createState() => _MyAppState();
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -77,7 +75,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     HomeWidget.setAppGroupId('YOUR_GROUP_ID');
-    HomeWidget.registerInteractivityCallback(interactiveCallback);
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
   @override
@@ -100,11 +98,11 @@ class _MyAppState extends State<MyApp> {
         HomeWidget.saveWidgetData<String>('title', _titleController.text),
         HomeWidget.saveWidgetData<String>('message', _messageController.text),
         HomeWidget.renderFlutterWidget(
-          const Icon(
+          Icon(
             Icons.flutter_dash,
             size: 200,
           ),
-          logicalSize: const Size(200, 200),
+          logicalSize: Size(200, 200),
           key: 'dashIcon',
         ),
       ]);
@@ -116,9 +114,7 @@ class _MyAppState extends State<MyApp> {
   Future _updateWidget() async {
     try {
       return HomeWidget.updateWidget(
-        name: 'HomeWidgetExampleProvider',
-        iOSName: 'HomeWidgetExample',
-      );
+          name: 'HomeWidgetExampleProvider', iOSName: 'HomeWidgetExample');
     } on PlatformException catch (exception) {
       debugPrint('Error Updating Widget. $exception');
     }
@@ -129,10 +125,9 @@ class _MyAppState extends State<MyApp> {
       return Future.wait([
         HomeWidget.getWidgetData<String>('title', defaultValue: 'Default Title')
             .then((value) => _titleController.text = value ?? ''),
-        HomeWidget.getWidgetData<String>(
-          'message',
-          defaultValue: 'Default Message',
-        ).then((value) => _messageController.text = value ?? ''),
+        HomeWidget.getWidgetData<String>('message',
+                defaultValue: 'Default Message')
+            .then((value) => _messageController.text = value ?? ''),
       ]);
     } on PlatformException catch (exception) {
       debugPrint('Error Getting Data. $exception');
@@ -151,21 +146,17 @@ class _MyAppState extends State<MyApp> {
   void _launchedFromWidget(Uri? uri) {
     if (uri != null) {
       showDialog(
-        context: context,
-        builder: (buildContext) => AlertDialog(
-          title: const Text('App started from HomeScreenWidget'),
-          content: Text('Here is the URI: $uri'),
-        ),
-      );
+          context: context,
+          builder: (buildContext) => AlertDialog(
+                title: Text('App started from HomeScreenWidget'),
+                content: Text('Here is the URI: $uri'),
+              ));
     }
   }
 
   void _startBackgroundUpdate() {
-    Workmanager().registerPeriodicTask(
-      '1',
-      'widgetBackgroundUpdate',
-      frequency: const Duration(minutes: 15),
-    );
+    Workmanager().registerPeriodicTask('1', 'widgetBackgroundUpdate',
+        frequency: Duration(minutes: 15));
   }
 
   void _stopBackgroundUpdate() {
@@ -182,39 +173,39 @@ class _MyAppState extends State<MyApp> {
         child: Column(
           children: [
             TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Title',
               ),
               controller: _titleController,
             ),
             TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Body',
               ),
               controller: _messageController,
             ),
             ElevatedButton(
               onPressed: _sendAndUpdate,
-              child: const Text('Send Data to Widget'),
+              child: Text('Send Data to Widget'),
             ),
             ElevatedButton(
               onPressed: _loadData,
-              child: const Text('Load Data'),
+              child: Text('Load Data'),
             ),
             ElevatedButton(
               onPressed: _checkForWidgetLaunch,
-              child: const Text('Check For Widget Launch'),
+              child: Text('Check For Widget Launch'),
             ),
             if (Platform.isAndroid)
               ElevatedButton(
                 onPressed: _startBackgroundUpdate,
-                child: const Text('Update in background'),
+                child: Text('Update in background'),
               ),
             if (Platform.isAndroid)
               ElevatedButton(
                 onPressed: _stopBackgroundUpdate,
-                child: const Text('Stop updating in background'),
-              ),
+                child: Text('Stop updating in background'),
+              )
           ],
         ),
       ),
